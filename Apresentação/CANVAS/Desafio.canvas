@@ -1,0 +1,22 @@
+{
+	"nodes":[
+		{"id":"ccbcc25fb8b45d7c","type":"text","text":"IMU (sensor read)\nAcc: [x, y, z] m/s²\nGyro: [x, y, z] rad/s\nMag: [x, y, z] \ntime: [timestamp] nS (Unix epoch time)","x":-440,"y":-184,"width":340,"height":140},
+		{"id":"6982cf32945caa8a","x":-460,"y":40,"width":360,"height":142,"type":"text","text":"GPS (module read)\nLat: [value] rad\nLon: [value] rad\nAlt:  [value] m\ntime: [timestamp] nS (Unix epoch time)"},
+		{"id":"bcdc8781faa19ba4","x":180,"y":-880,"width":480,"height":726,"type":"text","text":"Filtro de Mahony (AHRS lib)\n![[Pasted image 20241130134148.png]]\n![[Pasted image 20241130134212.png]]\n\nO filtro usa um modelo simples de dinâmica para estimar a atitude. Ele integra as medições do IMU ao longo do tempo, para atualizar a orientação estimada. (Filtro com Realimentação)\n\nEle responde com a estimação de atitude em Quaternions!\n![[Pasted image 20241130134814.png]]\n\nOutput: q = [w, x, y, z]"},
+		{"id":"9c7f21abeca8ffc5","x":840,"y":-154,"width":460,"height":300,"type":"text","text":"Direction Cosine Matrix\n(Matriz de Rotação)\n\ndcm=\n![[Pasted image 20241130135147.png]]\n\ninvdcm = dcm^-1 ou dcm^T \nNED = invdcm @ Acc "},
+		{"id":"eb539d0eeccec324","x":1000,"y":-480,"width":720,"height":260,"type":"text","text":"Convert Quaternions to Roll, Pitch e Yaw\n\n```\nyaw = atan2(2.0*(q.y*q.z + q.w*q.x), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);\npitch = asin(-2.0*(q.x*q.z - q.w*q.y));\nroll = atan2(2.0*(q.x*q.y + q.w*q.z), q.w*q.w + q.x*q.x - q.y*q.y - q.z*q.z);\n```\n\nÉ importante para saber a rotação do foguete, onde está apontando e tudo mais.\nrpy = [roll, pitch, yaw] rad"},
+		{"id":"9f87d7b855ebc1d9","x":-760,"y":-44,"width":138,"height":60,"type":"text","text":"ESP32 ou STM32"},
+		{"id":"dfc4d7a0d1f27c7a","x":1300,"y":260,"width":460,"height":360,"type":"text","text":"Filtro de Kalman (GNSS + IMU) \n\nFrequência de GPS e IMU são muito diferentes. (Insere o mesmo [GPS] até que seja atualizado)\n\nEnquanto isso, IMU atualiza muito rápido, e vai mudando a posição, até que GPS venha e conserte o erro do IMU em dt.\n\n![[Pasted image 20241130142100.png]]\nOutput: [lat, lon, alt, velN, velE, velD]\n"}
+	],
+	"edges":[
+		{"id":"b4e45ef6dc7074d8","fromNode":"9f87d7b855ebc1d9","fromSide":"right","toNode":"ccbcc25fb8b45d7c","toSide":"left","label":"thread/1"},
+		{"id":"8dc4e149f98a1071","fromNode":"9f87d7b855ebc1d9","fromSide":"right","toNode":"6982cf32945caa8a","toSide":"left","label":"thread/2"},
+		{"id":"d2e9caa997c424e2","fromNode":"ccbcc25fb8b45d7c","fromSide":"right","toNode":"bcdc8781faa19ba4","toSide":"left","label":"[Acc, Gyro, Mag]"},
+		{"id":"66eef6ba0cc35537","fromNode":"bcdc8781faa19ba4","fromSide":"right","toNode":"9c7f21abeca8ffc5","toSide":"left","label":"[w, x, y, z]"},
+		{"id":"c77759399f2d1fb2","fromNode":"ccbcc25fb8b45d7c","fromSide":"right","toNode":"9c7f21abeca8ffc5","toSide":"left","label":"Acc\n\n"},
+		{"id":"9a7041fbd03ea482","fromNode":"6982cf32945caa8a","fromSide":"right","toNode":"dfc4d7a0d1f27c7a","toSide":"left","label":"[lat, lon, alt, time]"},
+		{"id":"913ae4719617f715","fromNode":"9c7f21abeca8ffc5","fromSide":"right","toNode":"dfc4d7a0d1f27c7a","toSide":"left","label":"NED = [AccN, AccE, AccD] m/s²"},
+		{"id":"58209c72e30c5a4c","fromNode":"bcdc8781faa19ba4","fromSide":"right","toNode":"eb539d0eeccec324","toSide":"left","label":"[w, x, y, z]"},
+		{"id":"549c466b68446dde","fromNode":"ccbcc25fb8b45d7c","fromSide":"right","toNode":"dfc4d7a0d1f27c7a","toSide":"left","label":"[time]"}
+	]
+}
